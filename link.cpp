@@ -1,6 +1,7 @@
 #include "link.hpp"
 
 #include <unistd.h>
+#include <arpa/inet.h>
 
 #include <cstdio>
 
@@ -39,7 +40,7 @@ int Link::read(std::string& s) const {
 		perror("read len error");
 		return false;
 	}
-	size=le32toh(size);
+	size=ntohl(size);
 	tmp=size;
 	while(size>0) {
 		len=std::min(bufferSize, size);
@@ -58,7 +59,7 @@ bool Link::write(const std::string& s) const {
 	if(!vaild||s.empty())return false;
 	const char* sp = s.c_str();
 	int size=s.size(), len, writeNum=0;
-	len=htole32(size);
+	len=htonl(size);
 	len=::write(socketId, &len, sizeof(int));
 	if(len<0) {
 		perror("write len error");
