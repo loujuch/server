@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 
+#include <cstdio>
+
 const int Link::bufferSize = 1024;
 const int Link::maxWrite = 3;
 
@@ -26,17 +28,19 @@ void Link::setSocketId(int socket) {
 	vaild=true;
 }
 
-bool Link::read(std::string& s) const {
+int Link::read(std::string& s) const {
 	if(!vaild)return false;
 	s.clear();
-	int len, size;
+	int len, size, tmp;
 	char buffer[bufferSize];
-	len=::read(socketId, &size, 4);
+	if(buffer==NULL)perror("buffer");
+	len=::read(socketId, &size, sizeof(int));
 	if(len<0) {
 		perror("read len error");
 		return false;
 	}
 	size=le32toh(size);
+	tmp=size;
 	while(size>0) {
 		len=std::min(bufferSize, size);
 		len=::read(socketId, buffer, len);
@@ -47,15 +51,15 @@ bool Link::read(std::string& s) const {
 		size-=len;
 		s.append(buffer, len);
 	}
-	return true;
+	return tmp;
 }
 
 bool Link::write(const std::string& s) const {
-	if(!vaild)return false;
+	if(!vaild||s.empty())return false;
 	const char* sp = s.c_str();
-	int size=s.size(), len, tmp, writeNum=0;
+	int size=s.size(), len, writeNum=0;
 	len=htole32(size);
-	len=::write(socketId, &len, 4);
+	len=::write(socketId, &len, sizeof(int));
 	if(len<0) {
 		perror("write len error");
 		return false;

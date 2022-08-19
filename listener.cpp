@@ -8,7 +8,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
-	#include <iostream>
+#include <pthread.h>
 
 Listener::Listener(const short port):status(false), listenSocket(0) {
 	char buffer[6]="\0";
@@ -40,16 +40,17 @@ Listener::Listener(const short port):status(false), listenSocket(0) {
 
 void Listener::listen(Event event) const {
 	if(!status)return;
-	int other;
 	socklen_t size;
 	struct sockaddr_in otherSocket;
 	while(1) {
+		int other;
 		other=accept(listenSocket, (struct sockaddr*)&other, &size);
 		if(other!=-1) {
-			
-			std::cout<<"connect\n";
-
-			std::thread(event, other, otherSocket);
+			void* tmp;
+			memcpy(&tmp, &other, sizeof(int));
+			pthread_t t;
+			pthread_create(&t, NULL, event, tmp);
+			pthread_detach(t);
 		} else {
 			perror("accept error!");
 		}

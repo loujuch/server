@@ -1,9 +1,7 @@
 #ifndef _LISTENER_HPP_
 #define _LISTENER_HPP_
 
-#include <thread>
-
-using Event = void (*)(int other, struct sockaddr_in otherSocket);
+typedef void* (*Event)(void* other);
 
 class Listener {
 	bool status;
