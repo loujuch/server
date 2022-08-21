@@ -58,7 +58,6 @@ void* Globe::slove(void* other) {
 		switch(sim) {
 			case LogOut:
 				printf("Globe::slove will LogOut id: %d, name: %s\n", user.getId(), user.getName().c_str());
-				user.logOut();
 				logout=true;
 				has=false;
 				printf("Globe::slove finish LogOut id: %d, name: %s\n", user.getId(), user.getName().c_str());
@@ -91,8 +90,10 @@ void* Globe::slove(void* other) {
 		if(!tmp)break;
 		if(has)user.insertMessage(Message(type, user.getId(), target, s));
 	}
+	user.logOut();
 	OnlineUserList::deleteUser(user);
 	OnlineUserList::sendAllIdentityOut(user);
+	printf("Globe::slove finish\n");
 	return NULL;
 }
 
@@ -122,7 +123,7 @@ void* Globe::userWrite(void* pUser) {
 		case AloneText :
 			printf("Globe::userWrite will write AloneText id:%d, user: %s, source: %d, content: %s\n",
 				user->getId(), user->getName().c_str(), s.getSource(), s.getContent().c_str());
-			OnlineUserList::sendBuffer(buffer, s.getTarget());
+			OnlineUserList::sendBuffer(buffer, s.getTarget(), s.getSource());
 			printf("Globe::userWrite finish write AloneText id:%d, user: %s, source: %d, content: %s\n",
 				user->getId(), user->getName().c_str(), s.getSource(), s.getContent().c_str());
 			break;
@@ -150,6 +151,7 @@ void* Globe::userWrite(void* pUser) {
 		default:
 			break;
 		}
+		printf("Globe::userWrite finishid:%d, user: %s\n", user->getId(), user->getName().c_str());
 	}
 	return NULL;
 }
