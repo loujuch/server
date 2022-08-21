@@ -1,102 +1,107 @@
-#include "globe.hpp"
+#include "globe.h"
+#include "MessageQueue.h"
+#include "OnlineUserList.h"
+#include "ControlCode.h"
+#include "LogUtils.h"
 
 #include <cstring>
 #include <netdb.h>
 #include <unistd.h>
 
-pthread_cond_t Globe::messageCond;
-pthread_mutex_t Globe::messageMutex;
-pthread_mutex_t Globe::userMutex;
-std::queue<std::string> Globe::message;
-std::list<Globe::User> Globe::user;
-std::map<int, std::list<Globe::User>::iterator> Globe::table;
-
-Globe::User::User(const Link& link):link(link) {
-}
-
-void Globe::init() {
-	pthread_cond_init(&messageCond, NULL);
-	pthread_mutex_init(&messageMutex, NULL);
-	pthread_mutex_init(&userMutex, NULL);
-	while(!user.empty())user.pop_back();
-	while(!message.empty())message.pop();
+bool Globe::waitLog(const Link& link, int& id, std::string& name) {
+	bool log=false;
+	int code, len;
+	while(!log) {
+		len=link.readInt32(code);
+		if(!len)break;
+		switch(code) {
+			case LogUp :
+				log=LogUtils::LogUp(link, id, name);
+				break;
+			case LogIn :
+				log=LogUtils::LogIn(link, id, name);
+				break;
+			default:
+				break;
+		}
+	}
+	return log;
 }
 
 void* Globe::slove(void* other) {
-	int tmp;
+	int tmp, id;
+	std::string name;
 	memcpy(&tmp, &other, sizeof(int));
 	Link link(tmp);
+	if(waitLog(link, id, name)) {
+		return NULL;
+	}
+	User user(id, name, link);
+	OnlineUserList::insertUser(user);
+	OnlineUserList::sendAllIdentityIn(user);
+	
+	int sim=0;
+	bool logout=false, has=false;
+	MessageType type;
+	int target, len;
 	std::string s("");
-	int len=0;
-	insertUser(link);
-	while(1) {
-		if(!link.read(s))break;
-		insertMessage(s);
+	while(!logout) {
+		if(!user.readInt32(sim))break;
+		switch(sim) {
+			case LogOut:
+				logout=true;
+				has=false;
+				break;
+			case AloneText:
+				type=AloneText;
+				len=user.readInt32(target);
+				user.readInt32(len);
+				user.readString(s, len);
+				has=true;
+				break;
+			case GroubText:
+				type=GroubText;
+				user.readInt32(len);
+				user.readString(s, len);
+				has=true;
+				break;
+			default:
+				has=false;
+				break;
+		}
+		if(has)MessageQueue::insertMessage(Message(type, user.getId(), target, s));
 	}
-	deleteUser(link);
+	OnlineUserList::deleteUser(user);
+	OnlineUserList::sendAllIdentityOut(user);
 	return NULL;
 }
 
-void* Globe::serve(void* null) {
-	std::string s;
-	bool flag;
+void* Globe::server(void* null) {
 	while(1) {
-		flag=takeMessage(s);
-		if(flag)broadcast(s);
+		Message s(MessageQueue::takeMessage());
+		switch (s.getType()) {
+		case AloneText :
+			OnlineUserList::sendInt32(AloneText, s.getTarget());
+			OnlineUserList::sendInt32(s.getSource(), s.getTarget());
+			OnlineUserList::send(s.getContent(), s.getTarget());
+			break;
+		case GroubText:
+			OnlineUserList::broadcastInt32(GroubText);
+			OnlineUserList::broadcastInt32(s.getSource());
+			OnlineUserList::broadcast(s.getContent());
+			break;
+		case AddIdentity:
+			OnlineUserList::sendInt32(AddIdentity, s.getTarget());
+			OnlineUserList::sendInt32(s.getSource(), s.getTarget());
+			OnlineUserList::send(s.getContent(), s.getTarget());
+			break;
+		case SubIdentity:
+			OnlineUserList::sendInt32(SubIdentity, s.getTarget());
+			OnlineUserList::sendInt32(s.getSource(), s.getTarget());
+			OnlineUserList::send(s.getContent(), s.getTarget());
+		default:
+			break;
+		}
 	}
 	return NULL;
-}
-
-void Globe::broadcast(const std::string& s) {
-	bool flag;
-	pthread_mutex_lock(&userMutex);
-	std::list<User>::iterator it = user.begin();
-	while(it!=user.end()) {
-		flag=it->link.write(s);
-		++it;
-	}
-	pthread_mutex_unlock(&userMutex);
-}
-
-bool Globe::insertUser(const Link& link) {
-	pthread_mutex_lock(&userMutex);
-	user.push_front(link);
-	table.insert(make_pair(link.getSocketId(), user.begin()));
-	pthread_mutex_unlock(&userMutex);
-	return true;
-}
-
-bool Globe::deleteUser(const Link& link) {
-	bool u=true;
-	pthread_mutex_lock(&userMutex);
-	u=(table.count(link.getSocketId())>0);
-	if(u) {
-		user.erase(table[link.getSocketId()]);
-		table.erase(link.getSocketId());
-	}
-	pthread_mutex_unlock(&userMutex);
-	return u;
-}
-
-void Globe::insertMessage(const std::string& s) {
-	if(s.empty())return;
-	pthread_mutex_lock(&messageMutex);
-	message.push(s);
-	pthread_cond_signal(&messageCond);
-	pthread_mutex_unlock(&messageMutex);
-}
-
-bool Globe::takeMessage(std::string& s) {
-	pthread_mutex_lock(&messageMutex);
-	while(message.empty())pthread_cond_wait(&messageCond, &messageMutex);
-	s=message.front();
-	message.pop();
-	pthread_mutex_unlock(&messageMutex);
-	return true;
-}
-
-void Globe::destory() {
-	pthread_cond_destroy(&messageCond);
-	pthread_mutex_destroy(&messageMutex);
-	pthread_mutex_destroy(&userMutex);
 }

@@ -1,2 +1,2 @@
-main: *.hpp *.cpp
-	g++ *.hpp *.cpp -lpthread -o main
+main: *.h *.cpp
+	g++ *.h *.cpp -lpthread -lsqlite3 -o main -std=c++98

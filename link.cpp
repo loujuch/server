@@ -1,9 +1,8 @@
-#include "link.hpp"
-
-#include <unistd.h>
-#include <arpa/inet.h>
+#include "link.h"
 
 #include <cstdio>
+#include <unistd.h>
+#include <arpa/inet.h>
 
 const int Link::bufferSize = 1024;
 const int Link::maxWrite = 3;
@@ -29,24 +28,53 @@ void Link::setSocketId(int socket) {
 	vaild=true;
 }
 
-int Link::read(std::string& s) const {
+int Link::readInt32(int& value) const {
+	int size=4, tmp=size, len;
+	char* p=(char*)&value;
+	while(tmp>0) {
+		len=::read(socketId, p, tmp);
+		if(!len)return 0;
+		if(len<0) {
+			perror("Link::readInt32 read error!");
+			continue;
+		}
+		tmp-=len;
+		p+=len;
+	}
+	value=ntohl(value);
+	return size-tmp;
+}
+
+int Link::writeInt32(int value) const {
+	value=htonl(value);
+	int size=4, tmp=size, len, writeNum=0;
+	char* p=(char*)&value;
+	while(tmp>0) {
+		len=::write(socketId, p, tmp);
+		if(len<=0) {
+			perror("Link::writeInt32 write error!");
+			if((++writeNum)==maxWrite)return false;
+			continue;
+		}
+		writeNum=0;
+		tmp-=len;
+		p+=len;
+	}
+	return size-tmp;
+}
+
+int Link::readString(std::string& s, int size) const {
 	if(!vaild)return false;
 	s.clear();
-	int len, size, tmp;
+	int len, tmp;
 	char buffer[bufferSize];
 	if(buffer==NULL)perror("buffer");
-	len=::read(socketId, &size, sizeof(int));
-	if(len<0) {
-		perror("read len error");
-		return false;
-	}
-	size=ntohl(size);
 	tmp=size;
 	while(size>0) {
 		len=std::min(bufferSize, size);
 		len=::read(socketId, buffer, len);
 		if(len<0) {
-			perror("read data error");
+			perror("Link::readString read data error");
 			continue;
 		}
 		size-=len;
@@ -55,19 +83,18 @@ int Link::read(std::string& s) const {
 	return tmp;
 }
 
-bool Link::write(const std::string& s) const {
+bool Link::writeString(const std::string& s) const {
 	if(!vaild||s.empty())return false;
 	const char* sp = s.c_str();
 	int size=s.size(), len, writeNum=0;
-	len=htonl(size);
-	len=::write(socketId, &len, sizeof(int));
+	len=writeInt32(len);
 	if(len<0) {
 		perror("write len error");
 		return false;
 	}
 	while(size>0) {
 		len=::write(socketId, sp, size);
-		if(len<0) {
+		if(len<=0) {
 			perror("write data error");
 			if((++writeNum)==maxWrite)return false;
 			continue;
