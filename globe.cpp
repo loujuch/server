@@ -93,7 +93,7 @@ void* Globe::slove(void* other) {
 	user.logOut();
 	OnlineUserList::deleteUser(user);
 	OnlineUserList::sendAllIdentityOut(user);
-	printf("Globe::slove finish\n");
+	printf("Globe::slove finish id: %d, name: %s\n", user.getId(), user.getName().c_str());
 	return NULL;
 }
 
