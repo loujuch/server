@@ -3,6 +3,7 @@
 
 #include "link.h"
 #include "MessageQueue.h"
+#include "Buffer.h"
 
 class User {
 	bool vaild;
@@ -10,14 +11,16 @@ class User {
 	std::string name;
 	const Link& link;
 	MessageQueue& messageQueue;
+
+	int writeInt32(int value);
+	int writeString(const std::string& s);
 public:
 	User(int id, const std::string& name, const Link& link, MessageQueue& messageQueue);
 
 	int readInt32(int& value);
 	int readString(std::string& s, int n);
 
-	int writeInt32(int value);
-	int writeString(const std::string& s);
+	int writeBuffer(const Buffer& buffer);
 
 	void insertMessage(const Message& s);
 	Message takeMessage();

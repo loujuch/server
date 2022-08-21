@@ -40,6 +40,7 @@ Listener::Listener(const short port):status(false), listenSocket(0) {
 
 void Listener::listen(Event event) const {
 	if(!status)return;
+	printf("Listener::listen listen start\n");
 	socklen_t size;
 	struct sockaddr_in otherSocket;
 	while(1) {
@@ -48,6 +49,7 @@ void Listener::listen(Event event) const {
 		if(other!=-1) {
 			void* tmp;
 			memcpy(&tmp, &other, sizeof(int));
+			printf("Listener::listen new link: %d\n", other);
 			pthread_t t;
 			pthread_create(&t, NULL, event, tmp);
 			pthread_detach(t);

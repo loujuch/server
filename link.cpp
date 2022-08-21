@@ -88,26 +88,34 @@ int Link::readString(std::string& s, int size) const {
 }
 
 // 写一个字符串到对面。先发送字符串长（32位整数），若发送串长失败这返回负数。发送错误maxWrite次自动返回。返回值是写入字节数
-int Link::writeString(const std::string& s) const {
+int Link::writeString(const std::string& s, bool set) const {
 	if(!vaild||s.empty())return false;
 	const char* sp = s.c_str();
 	int size=s.size(), len, writeNum=0;
-	len=writeInt32(len);
-	if(len<sizeof(int)) {
-		perror("write len error");
-		return len-sizeof(int);
+	if(set) {
+		len=writeInt32(len);
+		if(len<sizeof(int)) {
+			perror("write len error");
+			return len-sizeof(int);
+		}
 	}
 	int tmp=size;
-	while(tmp>0) {
-		len=::write(socketId, sp, tmp);
-		if(len<=0) {
-			perror("write data error");
-			if((++writeNum)==maxWrite)break;
-			continue;
-		}
-		writeNum=0;
-		sp+=len;
-		tmp-=len;
-	}
-	return size-tmp;
+	len=::write(socketId, sp, tmp);
+	return len;
+	// while(tmp>0) {
+	// 	len=::write(socketId, sp, tmp);
+	// 	if(len<=0) {
+	// 		perror("write data error");
+	// 		if((++writeNum)==maxWrite)break;
+	// 		continue;
+	// 	}
+	// 	writeNum=0;
+	// 	sp+=len;
+	// 	tmp-=len;
+	// }
+	// return size-tmp;
+}
+
+int Link::writeBuffer(const Buffer& buffer) const {
+	return writeString(buffer.data(), false);
 }

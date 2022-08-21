@@ -15,11 +15,15 @@ int User::readString(std::string& s, int n) {
 }
 
 int User::writeInt32(int value) {
-	return link.writeInt32(value);
+	return 0; //link.writeInt32(value);
 }
 
 int User::writeString(const std::string& s) {
-	return link.writeString(s);
+	return 0; //link.writeString(s);
+}
+
+int User::writeBuffer(const Buffer& buffer) {
+	return link.writeBuffer(buffer);
 }
 
 void User::insertMessage(const Message& s) {

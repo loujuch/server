@@ -46,7 +46,7 @@ void OnlineUserList::broadcastInt32(int s) {
 	pthread_mutex_lock(&userMutex);
 	std::list<User>::iterator it = userList.begin();
 	while(it!=userList.end()) {
-		it->writeInt32(s);
+		// it->writeInt32(s);
 		++it;
 	}
 	pthread_mutex_unlock(&userMutex);
@@ -57,7 +57,7 @@ bool OnlineUserList::sendInt32(int s, int to) {
 	bool u;
 	pthread_mutex_lock(&userMutex);
 	u=(table.count(to)>0);
-	if(u)u=table[to]->writeInt32(s);
+	// if(u)u=table[to]->writeInt32(s);
 	pthread_mutex_unlock(&userMutex);
 	return u;
 }
@@ -66,7 +66,7 @@ void OnlineUserList::broadcast(const std::string& s) {
 	pthread_mutex_lock(&userMutex);
 	std::list<User>::iterator it = userList.begin();
 	while(it!=userList.end()) {
-		it->writeString(s);
+		// it->writeString(s);
 		++it;
 	}
 	pthread_mutex_unlock(&userMutex);
@@ -77,7 +77,28 @@ bool OnlineUserList::send(const std::string& s, int to) {
 	bool u;
 	pthread_mutex_lock(&userMutex);
 	u=(table.count(to)>0);
-	if(u)u=table[to]->writeString(s);
+	// if(u)u=table[to]->writeString(s);
+	pthread_mutex_unlock(&userMutex);
+	return u;
+}
+
+void OnlineUserList::broadcastBuffer(const Buffer& buffer) {
+	pthread_mutex_lock(&userMutex);
+	std::list<User>::iterator it = userList.begin();
+	while(it!=userList.end()) {
+		it->writeBuffer(buffer);
+		++it;
+	}
+	pthread_mutex_unlock(&userMutex);
+}
+
+bool OnlineUserList::sendBuffer(const Buffer& buffer, int to) {
+	bool u;
+	pthread_mutex_lock(&userMutex);
+	u=(table.count(to)>0);
+	if(u) {
+		u=table[to]->writeBuffer(buffer);
+	}
 	pthread_mutex_unlock(&userMutex);
 	return u;
 }
@@ -89,7 +110,7 @@ bool OnlineUserList::sendAllIdentityIn(User& s) {
 	std::list<User>::iterator it = userList.begin();
 	while(it!=userList.end()) {
 		it->insertMessage(Message(AddIdentity, s.getId(), it->getId(), s.getName()));
-		s.insertMessage(Message(AddIdentity, it->getId(), s.getId(), it->getName()));
+		if(it->getId()!=s.getId())s.insertMessage(Message(AddIdentity, it->getId(), s.getId(), it->getName()));
 		++it;
 	}
 	pthread_mutex_unlock(&userMutex);
