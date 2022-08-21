@@ -52,9 +52,9 @@ void* Globe::slove(void* other) {
 	bool logout=false, has=false;
 	MessageType type;
 	int target, len;
-	std::string s("");
 	while(!logout) {
 		if(!user.readInt32(sim))break;
+		std::string s("");
 		switch(sim) {
 			case LogOut:
 				printf("Globe::slove will LogOut id: %d, name: %s\n", user.getId(), user.getName().c_str());
