@@ -54,21 +54,22 @@ void* Globe::slove(void* other) {
 				break;
 			case AloneText:
 				type=AloneText;
-				len=user.readInt32(target);
-				user.readInt32(len);
-				user.readString(s, len);
+				tmp=user.readInt32(target);
+				tmp=user.readInt32(len);
+				tmp=user.readString(s, len);
 				has=true;
 				break;
 			case GroubText:
 				type=GroubText;
-				user.readInt32(len);
-				user.readString(s, len);
+				tmp=user.readInt32(len);
+				tmp=user.readString(s, len);
 				has=true;
 				break;
 			default:
 				has=false;
 				break;
 		}
+		if(!tmp)break;
 		if(has)MessageQueue::insertMessage(Message(type, user.getId(), target, s));
 	}
 	OnlineUserList::deleteUser(user);

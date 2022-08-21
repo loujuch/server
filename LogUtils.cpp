@@ -9,7 +9,7 @@ bool LogUtils::LogIn(const Link& link, int& id, std::string& name) {
 	if(Sqlite::countItem("user", "account='"+accunt+"' OR name='"+name+"';")!=1) {
 		return false;
 	}
-	if(!UserSQL::search(id, accunt, passwd, name)) {
+	if(!UserSQL::search(id, accunt, passwd, name)||id<=0) {
 		return false;
 	}
 	link.writeInt32(LogSuccess);
@@ -29,7 +29,7 @@ bool LogUtils::LogUp(const Link& link, int& id, std::string& name) {
 		return false;
 	}
 	UserSQL::insert(accunt, passwd, name);
-	if(!UserSQL::search(id, accunt, passwd, name)) {
+	if(!UserSQL::search(id, accunt, passwd, name)||id<=0) {
 		return false;
 	}
 	link.writeInt32(LogSuccess);

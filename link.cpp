@@ -70,17 +70,17 @@ int Link::readString(std::string& s, int size) const {
 	char buffer[bufferSize];
 	if(buffer==NULL)perror("buffer");
 	tmp=size;
-	while(size>0) {
-		len=std::min(bufferSize, size);
+	while(tmp>0) {
+		len=std::min(bufferSize, tmp);
 		len=::read(socketId, buffer, len);
 		if(len<0) {
 			perror("Link::readString read data error");
 			continue;
 		}
-		size-=len;
+		tmp-=len;
 		s.append(buffer, len);
 	}
-	return tmp;
+	return size-tmp;
 }
 
 bool Link::writeString(const std::string& s) const {
