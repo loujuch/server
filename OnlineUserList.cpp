@@ -14,14 +14,21 @@ void OnlineUserList::destory() {
 	pthread_mutex_destroy(&userMutex);
 }
 
+
+// 插入指定用户，返回插入是否成功
 bool OnlineUserList::insertUser(const User& user) {
+	bool u=true;
 	pthread_mutex_lock(&userMutex);
-	userList.push_front(user);
-	table.insert(make_pair(user.getId(), userList.begin()));
+	u=(table.count(user.getId())==0);
+	if(u) {
+		userList.push_front(user);
+		table.insert(make_pair(user.getId(), userList.begin()));
+	}
 	pthread_mutex_unlock(&userMutex);
-	return true;
+	return u;
 }
 
+// 删除指定用户，返回删除是否成功
 bool OnlineUserList::deleteUser(const User& user) {
 	bool u=true;
 	pthread_mutex_lock(&userMutex);
@@ -34,6 +41,7 @@ bool OnlineUserList::deleteUser(const User& user) {
 	return u;
 }
 
+// 向所有用户广播一个整数
 void OnlineUserList::broadcastInt32(int s) {
 	pthread_mutex_lock(&userMutex);
 	std::list<User>::iterator it = userList.begin();
@@ -44,6 +52,7 @@ void OnlineUserList::broadcastInt32(int s) {
 	pthread_mutex_unlock(&userMutex);
 }
 
+// 向指定用户发送一个整数，返回是否成功
 bool OnlineUserList::sendInt32(int s, int to) {
 	bool u;
 	pthread_mutex_lock(&userMutex);
@@ -63,6 +72,7 @@ void OnlineUserList::broadcast(const std::string& s) {
 	pthread_mutex_unlock(&userMutex);
 }
 
+// 向所有用户广播一个字符串
 bool OnlineUserList::send(const std::string& s, int to) {
 	bool u;
 	pthread_mutex_lock(&userMutex);
@@ -73,7 +83,7 @@ bool OnlineUserList::send(const std::string& s, int to) {
 }
 
 
-//maybe problem
+// 向指定用户发送当前所有在线人员信息，相当前在线人员广播指定用户信息（着重关注是否死锁）
 bool OnlineUserList::sendAllIdentityIn(const User& s) {
 	pthread_mutex_lock(&userMutex);
 	std::list<User>::iterator it = userList.begin();
@@ -86,7 +96,7 @@ bool OnlineUserList::sendAllIdentityIn(const User& s) {
 	return true;
 }
 
-//maybe problem
+// 相当前在线人员广播指定用户信息（着重关注是否死锁）
 bool OnlineUserList::sendAllIdentityOut(const User& s) {
 	pthread_mutex_lock(&userMutex);
 	std::list<User>::iterator it = userList.begin();

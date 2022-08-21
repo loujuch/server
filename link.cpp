@@ -28,6 +28,7 @@ void Link::setSocketId(int socket) {
 	vaild=true;
 }
 
+// 读取一个整数，对面关闭连接返回0，否则返回读入长度
 int Link::readInt32(int& value) const {
 	int size=4, tmp=size, len;
 	char* p=(char*)&value;
@@ -45,6 +46,7 @@ int Link::readInt32(int& value) const {
 	return size-tmp;
 }
 
+// 写一个整数到对面，发送错误maxWrite次自动返回。返回值是写入字节数
 int Link::writeInt32(int value) const {
 	value=htonl(value);
 	int size=4, tmp=size, len, writeNum=0;
@@ -53,7 +55,7 @@ int Link::writeInt32(int value) const {
 		len=::write(socketId, p, tmp);
 		if(len<=0) {
 			perror("Link::writeInt32 write error!");
-			if((++writeNum)==maxWrite)return false;
+			if((++writeNum)==maxWrite)break;
 			continue;
 		}
 		writeNum=0;
@@ -63,6 +65,7 @@ int Link::writeInt32(int value) const {
 	return size-tmp;
 }
 
+// 读取指定长度字符串。对面关闭连接返回0，否则返回读入串长
 int Link::readString(std::string& s, int size) const {
 	if(!vaild)return false;
 	s.clear();
@@ -73,6 +76,7 @@ int Link::readString(std::string& s, int size) const {
 	while(tmp>0) {
 		len=std::min(bufferSize, tmp);
 		len=::read(socketId, buffer, len);
+		if(!len)return 0;
 		if(len<0) {
 			perror("Link::readString read data error");
 			continue;
@@ -83,25 +87,27 @@ int Link::readString(std::string& s, int size) const {
 	return size-tmp;
 }
 
-bool Link::writeString(const std::string& s) const {
+// 写一个字符串到对面。先发送字符串长（32位整数），若发送串长失败这返回负数。发送错误maxWrite次自动返回。返回值是写入字节数
+int Link::writeString(const std::string& s) const {
 	if(!vaild||s.empty())return false;
 	const char* sp = s.c_str();
 	int size=s.size(), len, writeNum=0;
 	len=writeInt32(len);
-	if(len<0) {
+	if(len<sizeof(int)) {
 		perror("write len error");
-		return false;
+		return len-sizeof(int);
 	}
-	while(size>0) {
-		len=::write(socketId, sp, size);
+	int tmp=size;
+	while(tmp>0) {
+		len=::write(socketId, sp, tmp);
 		if(len<=0) {
 			perror("write data error");
-			if((++writeNum)==maxWrite)return false;
+			if((++writeNum)==maxWrite)break;
 			continue;
 		}
 		writeNum=0;
 		sp+=len;
-		size-=len;
+		tmp-=len;
 	}
-	return true;
+	return size-tmp;
 }

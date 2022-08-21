@@ -22,7 +22,7 @@ public:
 	int writeInt32(int value) const;
 
 	int readString(std::string& s, int num) const;
-	bool writeString(const std::string& s) const;
+	int writeString(const std::string& s) const;
 
 	~Link();
 };
