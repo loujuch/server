@@ -84,12 +84,12 @@ bool OnlineUserList::send(const std::string& s, int to) {
 
 
 // 向指定用户发送当前所有在线人员信息，相当前在线人员广播指定用户信息（着重关注是否死锁）
-bool OnlineUserList::sendAllIdentityIn(const User& s) {
+bool OnlineUserList::sendAllIdentityIn(User& s) {
 	pthread_mutex_lock(&userMutex);
 	std::list<User>::iterator it = userList.begin();
 	while(it!=userList.end()) {
-		MessageQueue::insertMessage(Message(AddIdentity, s.getId(), it->getId(), s.getName()));
-		MessageQueue::insertMessage(Message(AddIdentity, it->getId(), s.getId(), it->getName()));
+		it->insertMessage(Message(AddIdentity, s.getId(), it->getId(), s.getName()));
+		s.insertMessage(Message(AddIdentity, it->getId(), s.getId(), it->getName()));
 		++it;
 	}
 	pthread_mutex_unlock(&userMutex);
@@ -101,7 +101,7 @@ bool OnlineUserList::sendAllIdentityOut(const User& s) {
 	pthread_mutex_lock(&userMutex);
 	std::list<User>::iterator it = userList.begin();
 	while(it!=userList.end()) {
-		MessageQueue::insertMessage(Message(SubIdentity, s.getId(), it->getId(), s.getName()));
+		it->insertMessage(Message(SubIdentity, s.getId(), it->getId(), s.getName()));
 		++it;
 	}
 	pthread_mutex_unlock(&userMutex);

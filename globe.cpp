@@ -36,10 +36,13 @@ void* Globe::slove(void* other) {
 	if(waitLog(link, id, name)) {
 		return NULL;
 	}
-	User user(id, name, link);
+	MessageQueue messageQueue;
+	User user(id, name, link, messageQueue);
+	pthread_t t;
+	pthread_create(&t, NULL, userWrite, &user);
+	pthread_detach(t);
 	OnlineUserList::insertUser(user);
 	OnlineUserList::sendAllIdentityIn(user);
-	
 	int sim=0;
 	bool logout=false, has=false;
 	MessageType type;
@@ -49,6 +52,7 @@ void* Globe::slove(void* other) {
 		if(!user.readInt32(sim))break;
 		switch(sim) {
 			case LogOut:
+				user.logOut();
 				logout=true;
 				has=false;
 				break;
@@ -70,17 +74,22 @@ void* Globe::slove(void* other) {
 				break;
 		}
 		if(!tmp)break;
-		if(has)MessageQueue::insertMessage(Message(type, user.getId(), target, s));
+		if(has)user.insertMessage(Message(type, user.getId(), target, s));
 	}
 	OnlineUserList::deleteUser(user);
 	OnlineUserList::sendAllIdentityOut(user);
 	return NULL;
 }
 
-void* Globe::server(void* null) {
-	while(1) {
-		Message s(MessageQueue::takeMessage());
+void* Globe::userWrite(void* pUser) {
+	User* user=(User*)pUser;
+	bool logout=false;
+	while(logout) {
+		Message s(user->takeMessage());
 		switch (s.getType()) {
+		case LogOut:
+			logout=true;
+			break;
 		case AloneText :
 			OnlineUserList::sendInt32(AloneText, s.getTarget());
 			OnlineUserList::sendInt32(s.getSource(), s.getTarget());

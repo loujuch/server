@@ -28,7 +28,7 @@ public:
 	static void broadcast(const std::string& s);
 	static bool send(const std::string& s, int to);
 
-	static bool sendAllIdentityIn(const User& s);
+	static bool sendAllIdentityIn(User& s);
 	static bool sendAllIdentityOut(const User& s);
 };
 

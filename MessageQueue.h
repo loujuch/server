@@ -6,19 +6,18 @@
 #include <queue>
 
 class MessageQueue {
-	static pthread_cond_t messageCond;
-	static pthread_mutex_t messageMutex;
-	static std::queue<Message>message;
+	pthread_cond_t messageCond;
+	pthread_mutex_t messageMutex;
+	std::queue<Message>message;
 
-	MessageQueue();
 	MessageQueue(const MessageQueue&);
 	MessageQueue& operator=(const MessageQueue&);
 public:
-	static void init();
-	static void destory();
+	MessageQueue();
+	~MessageQueue();
 
-	static void insertMessage(const Message& s);
-	static Message takeMessage();
+	void insertMessage(const Message& s);
+	Message takeMessage(bool& vaild);
 };
 
 #endif

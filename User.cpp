@@ -2,7 +2,8 @@
 
 #include <cstdio>
 
-User::User(int id, const std::string& name, const Link& link):id(id), name(name), link(link) {
+User::User(int id, const std::string& name, const Link& link, MessageQueue& messageQueue):
+	vaild(true), id(id), name(name), link(link), messageQueue(messageQueue) {
 }
 
 int User::readInt32(int& value) {
@@ -21,10 +22,23 @@ int User::writeString(const std::string& s) {
 	return link.writeString(s);
 }
 
+void User::insertMessage(const Message& s) {
+	return messageQueue.insertMessage(s);
+}
+
+Message User::takeMessage() {
+	return messageQueue.takeMessage(vaild);
+}
+
 int User::getId() const {
 	return id;
 }
 
 std::string User::getName() const {
 	return name;
+}
+
+void User::logOut() {
+	vaild=false;
+	messageQueue.insertMessage(Message(LogOut, -1, -1, ""));
 }

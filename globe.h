@@ -15,7 +15,7 @@ public:
 
 	static bool waitLog(const Link& link, int& id, std::string& name);
 
-	static void* server(void* null);
+	static void* userWrite(void* pUser);
 };
 
 #endif
