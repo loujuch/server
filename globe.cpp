@@ -42,7 +42,6 @@ void* Globe::slove(void* other) {
 	pthread_t t;
 	printf("Globe::slove will write thread create\n");
 	pthread_create(&t, NULL, userWrite, &user);
-	pthread_detach(t);
 	printf("Globe::slove finish write thread create\n");
 	OnlineUserList::insertUser(user);
 	printf("Globe::slove user into list\n");
@@ -90,9 +89,10 @@ void* Globe::slove(void* other) {
 		if(!tmp)break;
 		if(has)user.insertMessage(Message(type, user.getId(), target, s));
 	}
-	user.logOut();
 	OnlineUserList::deleteUser(user);
 	OnlineUserList::sendAllIdentityOut(user);
+	pthread_cancel(t);
+	pthread_join(t, NULL);
 	printf("Globe::slove finish id: %d, name: %s\n", user.getId(), user.getName().c_str());
 	return NULL;
 }
@@ -105,6 +105,7 @@ void* Globe::userWrite(void* pUser) {
 	while(!logout) {
 		printf("Globe::userWrite will read message id:%d, user: %s\n",
 			user->getId(), user->getName().c_str());
+		usleep(100000);
 		Message s(user->takeMessage());
 		printf("Globe::userWrite will read message id:%d, user: %s\n",
 			user->getId(), user->getName().c_str());
@@ -113,13 +114,13 @@ void* Globe::userWrite(void* pUser) {
 		buffer.addInt32(s.getSource());
 		buffer.addString(s.getContent());
 		switch (s.getType()) {
-		case LogOut:
-			printf("Globe::userWrite will LogOut id:%d, user: %s\n",
-				user->getId(), user->getName().c_str());
-			logout=true;
-			printf("Globe::userWrite finish LogOut id:%d, user: %s\n",
-				user->getId(), user->getName().c_str());
-			break;
+		// case LogOut:
+		// 	printf("Globe::userWrite will LogOut id:%d, user: %s\n",
+		// 		user->getId(), user->getName().c_str());
+		// 	logout=true;
+		// 	printf("Globe::userWrite finish LogOut id:%d, user: %s\n",
+		// 		user->getId(), user->getName().c_str());
+		// 	break;
 		case AloneText :
 			printf("Globe::userWrite will write AloneText id:%d, user: %s, source: %d, content: %s\n",
 				user->getId(), user->getName().c_str(), s.getSource(), s.getContent().c_str());
@@ -151,7 +152,7 @@ void* Globe::userWrite(void* pUser) {
 		default:
 			break;
 		}
-		printf("Globe::userWrite finishid:%d, user: %s\n", user->getId(), user->getName().c_str());
 	}
+	printf("Globe::userWrite finishid:%d, user: %s\n", user->getId(), user->getName().c_str());
 	return NULL;
 }

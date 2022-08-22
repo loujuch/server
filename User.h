@@ -6,7 +6,6 @@
 #include "Buffer.h"
 
 class User {
-	bool vaild;
 	int id;
 	std::string name;
 	const Link& link;
@@ -27,8 +26,6 @@ public:
 
 	int getId() const;
 	std::string getName() const;
-
-	void logOut();
 };
 
 #endif

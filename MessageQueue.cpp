@@ -20,13 +20,9 @@ void MessageQueue::insertMessage(const Message& s) {
 }
 
 // 将消息从消息队列中取出
-Message MessageQueue::takeMessage(bool& vaild) {
+Message MessageQueue::takeMessage() {
 	pthread_mutex_lock(&messageMutex);
 	while(message.empty())pthread_cond_wait(&messageCond, &messageMutex);
-	if(!vaild) {
-		pthread_mutex_unlock(&messageMutex);
-		return Message(LogOut, -1, -1, "");
-	}
 	const Message out(message.front());
 	message.pop();
 	pthread_mutex_unlock(&messageMutex);

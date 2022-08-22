@@ -2,6 +2,7 @@
 #include "UserSQL.h"
 #include "ControlCode.h"
 #include "Buffer.h"
+#include "OnlineUserList.h"
 
 #include <cstdio>
 
@@ -30,6 +31,14 @@ bool LogUtils::LogIn(const Link& link, int& id, std::string& name) {
 		buffer.addString("select error!");
 		link.writeBuffer(buffer);
 		printf("LogUtils::LogIn finish send error message: select error!");
+		return false;
+	}
+	if(OnlineUserList::existUser(id)) {
+		printf("LogUtils::LogIn will send error message: user had login!");
+		buffer.addInt32(Error);
+		buffer.addString("user had login!");
+		link.writeBuffer(buffer);
+		printf("LogUtils::LogIn finish send error message: user had login!");
 		return false;
 	}
 	printf("LogUtils::LogIn will write user mseeage id:%d, account:%s, passwd:%s, name:%s\n", 

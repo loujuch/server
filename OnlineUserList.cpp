@@ -129,3 +129,11 @@ bool OnlineUserList::sendAllIdentityOut(const User& s) {
 	pthread_mutex_unlock(&userMutex);
 	return true;
 }
+
+bool OnlineUserList::existUser(int id) {
+	bool u;
+	pthread_mutex_lock(&userMutex);
+	u=(table.count(id)>0);
+	pthread_mutex_unlock(&userMutex);
+	return u;
+}

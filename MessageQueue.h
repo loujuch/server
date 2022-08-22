@@ -17,7 +17,7 @@ public:
 	~MessageQueue();
 
 	void insertMessage(const Message& s);
-	Message takeMessage(bool& vaild);
+	Message takeMessage();
 };
 
 #endif

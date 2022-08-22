@@ -3,7 +3,7 @@
 #include <cstdio>
 
 User::User(int id, const std::string& name, const Link& link, MessageQueue& messageQueue):
-	vaild(true), id(id), name(name), link(link), messageQueue(messageQueue) {
+	id(id), name(name), link(link), messageQueue(messageQueue) {
 }
 
 int User::readInt32(int& value) {
@@ -31,7 +31,7 @@ void User::insertMessage(const Message& s) {
 }
 
 Message User::takeMessage() {
-	return messageQueue.takeMessage(vaild);
+	return messageQueue.takeMessage();
 }
 
 int User::getId() const {
@@ -40,9 +40,4 @@ int User::getId() const {
 
 std::string User::getName() const {
 	return name;
-}
-
-void User::logOut() {
-	vaild=false;
-	messageQueue.insertMessage(Message(LogOut, -1, -1, ""));
 }

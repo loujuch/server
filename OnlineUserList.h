@@ -33,6 +33,8 @@ public:
 
 	static bool sendAllIdentityIn(User& s);
 	static bool sendAllIdentityOut(const User& s);
+
+	static bool existUser(int id);
 };
 
 #endif
