@@ -18,27 +18,27 @@ bool LogUtils::LogIn(const Link& link, int& id, std::string& name) {
 		accunt.c_str(), passwd.c_str());
 	Buffer buffer;
 	if((n=Sqlite::countItem("user", "account='"+accunt+"' AND passwd='"+passwd+"';"))!=1) {
-		printf("LogUtils::LogIn will send error message: user is not exist!");
+		printf("LogUtils::LogIn will send error message: user is not exist!\n");
 		buffer.addInt32(Error);
-		buffer.addString("user is not exist!");
+		buffer.addString("user is not exist!\n");
 		link.writeBuffer(buffer);
-		printf("LogUtils::LogIn finish send error message: user is not exist!");
+		printf("LogUtils::LogIn finish send error message: user is not exist!\n");
 		return false;
 	}
 	if(!UserSQL::search(id, accunt, passwd, name)||id<=0) {
-		printf("LogUtils::LogIn will send error message: select error!");
+		printf("LogUtils::LogIn will send error message: select error!\n");
 		buffer.addInt32(Error);
-		buffer.addString("select error!");
+		buffer.addString("select error!\n");
 		link.writeBuffer(buffer);
-		printf("LogUtils::LogIn finish send error message: select error!");
+		printf("LogUtils::LogIn finish send error message: select error!\n");
 		return false;
 	}
 	if(OnlineUserList::existUser(id)) {
-		printf("LogUtils::LogIn will send error message: user had login!");
+		printf("LogUtils::LogIn will send error message: user had login!\n");
 		buffer.addInt32(Error);
-		buffer.addString("user had login!");
+		buffer.addString("user had login!\n");
 		link.writeBuffer(buffer);
-		printf("LogUtils::LogIn finish send error message: user had login!");
+		printf("LogUtils::LogIn finish send error message: user had login!\n");
 		return false;
 	}
 	printf("LogUtils::LogIn will write user mseeage id:%d, account:%s, passwd:%s, name:%s\n", 
@@ -66,20 +66,20 @@ bool LogUtils::LogUp(const Link& link, int& id, std::string& name) {
 		accunt.c_str(), passwd.c_str(), name.c_str());
 	Buffer buffer;
 	if(Sqlite::countItem("user", "account='"+accunt+"' OR name='"+name+"';")) {
-		printf("LogUtils::LogUp will send error message: user is exist!");
+		printf("LogUtils::LogUp will send error message: user is exist!\n");
 		buffer.addInt32(Error);
-		buffer.addString("user is exist!");
+		buffer.addString("user is exist!\n");
 		link.writeBuffer(buffer);
-		printf("LogUtils::LogUp finish send error message: user is exist!");
+		printf("LogUtils::LogUp finish send error message: user is exist!\n");
 		return false;
 	}
 	UserSQL::insert(accunt, passwd, name);
 	if(!UserSQL::search(id, accunt, passwd, name)||id<=0) {
-		printf("LogUtils::LogUp will send error message: select error!");
+		printf("LogUtils::LogUp will send error message: select error!\n");
 		buffer.addInt32(Error);
-		buffer.addString("select error!");
+		buffer.addString("select error!\n");
 		link.writeBuffer(buffer);
-		printf("LogUtils::LogUp finish send error message: select error!");
+		printf("LogUtils::LogUp finish send error message: select error!\n");
 		return false;
 	}
 	printf("LogUtils::LogUp will write user mseeage id:%d, account:%s, passwd:%s, name:%s\n", 

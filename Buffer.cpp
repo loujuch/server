@@ -15,12 +15,6 @@ void Buffer::addString(const std::string& s) {
 	this->s+=s;
 }
 
-void Buffer::addHead() {
-	int n=s.size()+4;
-	n=htonl(n);
-	s=std::string((char*)&n, 4)+s;
-}
-
 const std::string& Buffer::data() const {
 	return s;
 }

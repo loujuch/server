@@ -92,14 +92,11 @@ void OnlineUserList::broadcastBuffer(const Buffer& buffer) {
 	pthread_mutex_unlock(&userMutex);
 }
 
-bool OnlineUserList::sendBuffer(const Buffer& buffer, int to, int from) {
+bool OnlineUserList::sendBuffer(const Buffer& buffer, int to) {
 	bool u;
 	pthread_mutex_lock(&userMutex);
 	u=(table.count(to)>0);
-	if(u) {
-		u=table[to]->writeBuffer(buffer);
-		if(from>=0&&from!=to)u&=table[from]->writeBuffer(buffer);
-	}
+	if(u)u=table[to]->writeBuffer(buffer);
 	pthread_mutex_unlock(&userMutex);
 	return u;
 }

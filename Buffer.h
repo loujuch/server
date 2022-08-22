@@ -10,7 +10,6 @@ public:
 
 	void addInt32(int n);
 	void addString(const std::string& s);
-	void addHead();
 
 	const std::string& data() const;
 	int size() const;

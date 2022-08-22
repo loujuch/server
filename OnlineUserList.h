@@ -29,7 +29,7 @@ public:
 	static bool deleteUser(const User& user);
 
 	static void broadcastBuffer(const Buffer& buffer);
-	static bool sendBuffer(const Buffer& buffer, int to, int from=-1);
+	static bool sendBuffer(const Buffer& buffer, int to);
 
 	static bool sendAllIdentityIn(User& s);
 	static bool sendAllIdentityOut(const User& s);

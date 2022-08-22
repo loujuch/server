@@ -124,7 +124,14 @@ void* Globe::userWrite(void* pUser) {
 		case AloneText :
 			printf("Globe::userWrite will write AloneText id:%d, user: %s, source: %d, content: %s\n",
 				user->getId(), user->getName().c_str(), s.getSource(), s.getContent().c_str());
-			OnlineUserList::sendBuffer(buffer, s.getTarget(), s.getSource());
+			OnlineUserList::sendBuffer(buffer, s.getTarget());
+			if(s.getSource()!=s.getTarget()) {
+				Buffer b;
+				b.addInt32(Back);
+				b.addInt32(s.getTarget());
+				b.addString(s.getContent());
+				OnlineUserList::sendBuffer(b, s.getSource());
+			}
 			printf("Globe::userWrite finish write AloneText id:%d, user: %s, source: %d, content: %s\n",
 				user->getId(), user->getName().c_str(), s.getSource(), s.getContent().c_str());
 			break;
